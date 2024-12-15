@@ -1,15 +1,12 @@
 const express = require('express');
 const app = express();
 const {userAuth} = require('./middleware/auth');
+const {connectDb} = require("./config/database");
 
-app.listen(7080, () => {
-    console.log("Server is sucsssfully listening on port 7080")
-});
+connectDb().then(() => {
 
-app.use("/user/login", (req, res) => {
-    res.send("<h1>Namaste Deepa login please</h1>")
-});
-
-app.use("/user/get", userAuth, (req, res) => {
-    res.send("<h1>Namaste Deepa</h1>")
-});
+    console.log("db connected...");
+    app.listen(7080, () => {
+        console.log("Server is sucsssfully listening on port 7080")
+    });
+})
