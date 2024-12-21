@@ -2,6 +2,8 @@ const express = require('express');
 const app = express();
 const {userAuth} = require('./middleware/auth');
 const {connectDb} = require("./config/database");
+const {validateSignup, validateLogin} = require("./utility/validations");
+const bcrypt = require("bcrypt");
 
 const User = require('./models/user')
 
@@ -22,16 +24,52 @@ connectDb()
 
 app.post('/signup', async (req, res) => {
 
-  const user = new User(req.body)
-
+  
   try {
+    
+    validateSignup(req);
+    
+    const {password, ...userData} = req.body;
+    const passHashed = await bcrypt.hash(password, 10);
+    const user = new User({...userData, password:passHashed});
+
       await user.save();
       res.send("user add");
   } catch (error) {
-    res.status(400).send(`${error.message}: err in user signup`);
+    res.status(400).send(`Error: ${error.message}: err in user signup`);
   }
      
 });
+
+
+app.post('/login', async (req, res) => {
+
+  
+  try {
+    validateLogin(req);
+
+    const {password,emailId} = req.body;
+
+     const user = await User.findOne({emailId});
+
+     if(!user){
+      throw new Error(`user not registered`);
+     }
+    
+     const passHashed = await bcrypt.compare(password, user.password);
+
+     if(!passHashed){
+        throw new Error('Wrong Password')
+     }
+
+      res.send("user logged in successfully");
+  } catch (error) {
+    res.status(400).send(`Error: ${error.message}: err in user login`);
+  }
+     
+});
+
+
 
 app.get('/user', async (req, res) => {
   const {emailId} = req.body;
