@@ -25,16 +25,10 @@ app.post('/signup', async (req, res) => {
   const user = new User(req.body)
 
   try {
-
-    const isUser = await User.findOne({emailId:user.emailId});
-    if(isUser){
-      res.status(400).send("User Already Exist");
-    }else{
       await user.save();
       res.send("user add");
-    }
   } catch (error) {
-    res.status(400).send("err in user signup ");
+    res.status(400).send(`${error.message}: err in user signup`);
   }
      
 });
@@ -50,7 +44,7 @@ app.get('/user', async (req, res) => {
       res.status(404).send("user not found")
     }
   } catch (error) {
-    res.status(400).send("err in getting user");
+    res.status(400).send(`${error.message}: err in getting user`);
   }
 });
 
@@ -65,7 +59,7 @@ app.get('/feed', async (req, res) => {
       res.status(404).send("user not found")
     }
   } catch (error) {
-    res.status(400).send("err in getting feed");
+    res.status(400).send(`${error.message}:err in getting feed`);
   }
 });
 
@@ -77,7 +71,7 @@ app.delete('/user', async (req, res) => {
       await User.findByIdAndDelete(userId);
       res.send('user deleted');
   } catch (error) {
-    res.status(400).send("err in deleting user");
+    res.status(400).send(`${error.message}: err in deleting user`);
   }
 });
 
@@ -86,17 +80,21 @@ app.patch('/user', async (req, res) => {
 
   const { userId, ...user} = req.body;
 
-
-
+  
   try {
-
-    await User.findOneAndUpdate({emailId:user.emailId}, user)
-
-    // await User.findByIdAndUpdate(userId, user);
-    res.send("user updated");
+    const allowedKeys = ['firstName', 'lastName', 'gender', 'userId'];
+    const isNotAllowed = Object.keys(req.body).filter(key => !allowedKeys.includes(key));
+    if(isNotAllowed.length){
+      console.log('kkkkkk', Object.keys(req.body))
+      res.status(400).send(`${isNotAllowed.join(', ')} are not allowed`);
+    }else{
+      await User.findOneAndUpdate({emailId:user.emailId}, user);
+      // await User.findByIdAndUpdate(userId, user);
+      res.send("user updated");
+    }
 
   } catch (error) {
-    res.status(400).send("err in user signup ");
+    res.status(400).send(`${error.message}: err in user signup`);
   }
      
 });

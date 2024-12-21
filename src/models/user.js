@@ -10,6 +10,7 @@ const userSchema = new mongoose.Schema({
     },
     emailId: {
         type:String,
+        unique:true,
         required:true,
     },
     password: {
@@ -17,11 +18,12 @@ const userSchema = new mongoose.Schema({
         required:true,
     },
     age: {
-        type:String,
+        type:Number,
+        cast:'{VALUE} is not a number ok?'
     },
     gender: {
         type:String,
     },
-});
+}, {timestamps:true});
 
 module.exports = mongoose.model("User", userSchema);

@@ -4,7 +4,8 @@
   "description": "tinder BE for dev",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon ./src/app.js"
   },
   "keywords": [
     "nodejs",
@@ -15,6 +16,7 @@
   "license": "ISC",
   "dependencies": {
     "express": "^4.21.2",
-    "mongoose": "^8.9.0"
+    "mongoose": "^8.9.0",
+    "validator": "^13.12.0"
   }
 }
