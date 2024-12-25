@@ -65,9 +65,8 @@ app.post('/login', async (req, res) => {
         throw new Error('Wrong Password')
      }
 
-     const token = jwt.sign({_id:user.id},"mogaMoga");
+     const token = jwt.sign({_id:user.id}, process.env.SECRET);
      
-    console.log("token", token);
 
     res.cookie('token', token);
     res.send("user logged in successfully");
@@ -85,8 +84,7 @@ app.get('/profile', async (req, res) => {
     const cookies = req.cookies;
     const {token} = cookies;
 
-    const {_id} = jwt.verify(token, "mogaMoga")
-    console.log('jwt id', _id);
+    const {_id} = jwt.verify(token, process.env.SECRET)
     
     const user = await User.findOne({_id});
 
