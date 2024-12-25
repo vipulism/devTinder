@@ -4,10 +4,13 @@ const {userAuth} = require('./middleware/auth');
 const {connectDb} = require("./config/database");
 const {validateSignup, validateLogin} = require("./utility/validations");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const cookieParser = require('cookie-parser')
 
 const User = require('./models/user')
 
 app.use(express.json());
+app.use(cookieParser());
 
 connectDb()
 .then(() => {
@@ -19,7 +22,7 @@ connectDb()
 }).catch((err) => {
     console.log("Server cannot connect");
     
-})
+});
 
 
 app.post('/signup', async (req, res) => {
@@ -48,7 +51,7 @@ app.post('/login', async (req, res) => {
   try {
     validateLogin(req);
 
-    const {password,emailId} = req.body;
+     const {password,emailId} = req.body;
 
      const user = await User.findOne({emailId});
 
@@ -62,11 +65,43 @@ app.post('/login', async (req, res) => {
         throw new Error('Wrong Password')
      }
 
-      res.send("user logged in successfully");
+     const token = jwt.sign({_id:user.id},"mogaMoga");
+     
+    console.log("token", token);
+
+    res.cookie('token', token);
+    res.send("user logged in successfully");
+
   } catch (error) {
     res.status(400).send(`Error: ${error.message}: err in user login`);
   }
      
+});
+
+app.get('/profile', async (req, res) => {
+  
+  try {
+
+    const cookies = req.cookies;
+    const {token} = cookies;
+
+    const {_id} = jwt.verify(token, "mogaMoga")
+    console.log('jwt id', _id);
+    
+    const user = await User.findOne({_id});
+
+    if(!cookies || !cookies?.token){
+      res.status(404).send("token not found");
+    }
+
+    if(user){
+      res.send(user);
+    } else {
+      res.status(404).send("user not found");
+    }
+  } catch (error) {
+    res.status(400).send(`${error.message}: err in getting user profile`);
+  }
 });
 
 
