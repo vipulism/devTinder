@@ -1,13 +1,28 @@
-const userAuth = (req, res, next) => {
+const jwt = require("jsonwebtoken");
+const User = require("../models/user");
 
-    const authentication = 'xyzzz';
+const userAuth = async (req, res, next) => {
 
-    if(authentication === 'xyz'){
+    try {
+        const {token} = req.cookies;
+        const decodedObj = await jwt.verify(token, process.env.SECRET)
+        const {_id } = decodedObj;
+        const user = await User.findById(_id);
+
+        if(!user){
+            throw new Error("Invalid Token!!!!!");
+        }
+
+        req.user = user;
         next();
+    } catch (error) {
+
+        res.status(400).send(`ERROR: ${error.message}`)
+        
     }
 
-    res.send('not allowd')
-
 }
+
+
 
 module.exports = { userAuth };

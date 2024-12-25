@@ -3,8 +3,6 @@ const app = express();
 const {userAuth} = require('./middleware/auth');
 const {connectDb} = require("./config/database");
 const {validateSignup, validateLogin} = require("./utility/validations");
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
 const cookieParser = require('cookie-parser')
 
 const User = require('./models/user')
@@ -26,7 +24,6 @@ connectDb()
 
 
 app.post('/signup', async (req, res) => {
-
   
   try {
     
@@ -51,23 +48,15 @@ app.post('/login', async (req, res) => {
   try {
     validateLogin(req);
 
-     const {password,emailId} = req.body;
+    const {password,emailId} = req.body;
+    const user = await User.findOne({emailId});
+    const passHashed = await user.verifyPassward(password);
 
-     const user = await User.findOne({emailId});
+    if(!passHashed){
+      throw new Error('Wrong Password')
+    }
 
-     if(!user){
-      throw new Error(`user not registered`);
-     }
-    
-     const passHashed = await bcrypt.compare(password, user.password);
-
-     if(!passHashed){
-        throw new Error('Wrong Password')
-     }
-
-     const token = jwt.sign({_id:user.id}, process.env.SECRET);
-     
-
+    const token = await user.getJWT();
     res.cookie('token', token);
     res.send("user logged in successfully");
 
@@ -77,97 +66,28 @@ app.post('/login', async (req, res) => {
      
 });
 
-app.get('/profile', async (req, res) => {
+
+
+app.get('/profile', userAuth, async (req, res) => {
   
   try {
-
-    const cookies = req.cookies;
-    const {token} = cookies;
-
-    const {_id} = jwt.verify(token, process.env.SECRET)
-    
-    const user = await User.findOne({_id});
-
-    if(!cookies || !cookies?.token){
-      res.status(404).send("token not found");
-    }
-
-    if(user){
-      res.send(user);
-    } else {
-      res.status(404).send("user not found");
-    }
+    const user = req.user;
+    res.send(user);
   } catch (error) {
     res.status(400).send(`${error.message}: err in getting user profile`);
   }
 });
 
-
-
-app.get('/user', async (req, res) => {
-  const {emailId} = req.body;
+app.get('/logout', async (req, res) => {
   
   try {
-    const user = await User.findOne({emailId});
-    if(user){
-      res.send(user);
-    } else {
-      res.status(404).send("user not found")
-    }
+    res.clearCookie('token');
+    res.send('user logged out');
+    
   } catch (error) {
     res.status(400).send(`${error.message}: err in getting user`);
   }
 });
 
-
-app.get('/feed', async (req, res) => {
-
-  try {
-    const users = await User.find({});
-    if(users.length){
-      res.send(users);
-    } else {
-      res.status(404).send("user not found")
-    }
-  } catch (error) {
-    res.status(400).send(`${error.message}:err in getting feed`);
-  }
-});
-
-
-app.delete('/user', async (req, res) => {
-  const {userId} = req.body;
-
-  try {
-      await User.findByIdAndDelete(userId);
-      res.send('user deleted');
-  } catch (error) {
-    res.status(400).send(`${error.message}: err in deleting user`);
-  }
-});
-
-
-app.patch('/user', async (req, res) => {
-
-  const { userId, ...user} = req.body;
-
-  
-  try {
-    const allowedKeys = ['firstName', 'lastName', 'gender', 'userId'];
-    const isNotAllowed = Object.keys(req.body).filter(key => !allowedKeys.includes(key));
-    if(isNotAllowed.length){
-      console.log('kkkkkk', Object.keys(req.body))
-      res.status(400).send(`${isNotAllowed.join(', ')} are not allowed`);
-    }else{
-      await User.findOneAndUpdate({emailId:user.emailId}, user);
-      // await User.findByIdAndUpdate(userId, user);
-      res.send("user updated");
-    }
-
-  } catch (error) {
-    res.status(400).send(`${error.message}: err in user signup`);
-  }
-     
-});
 
 
