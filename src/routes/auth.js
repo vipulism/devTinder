@@ -18,7 +18,7 @@ const User = require("../models/user")
             await user.save();
             res.send("user add");
         } catch (error) {
-            res.status(400).send(`Error: ${error.message}: err in user signup`);
+            res.status(400).send(`Error: ${error.message}`);
         }
        
     });
@@ -38,11 +38,11 @@ const User = require("../models/user")
             }
 
             const token = await user.getJWT();
-            res.cookie('token', token);
-            res.send("user logged in successfully");
+            res.cookie('token', token)
+                .send("user logged in successfully");
 
         } catch (error) {
-            res.status(400).send(`Error: ${error.message}: err in user login`);
+            res.status(400).send(`Error: ${error.message}`);
         }
         
     });
@@ -50,11 +50,13 @@ const User = require("../models/user")
     router.get('/logout', async (req, res) => {
   
         try {
-          res.clearCookie('token');
-          res.send('user logged out');
+            res.cookie('token', null, {
+                    expires: new Date(Date.now())
+                })
+                .send('user logged out');
           
         } catch (error) {
-          res.status(400).send(`${error.message}: err in getting user`);
+          res.status(400).send(`${error.message}: err in logout`);
         }
       });
 
