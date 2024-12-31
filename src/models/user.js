@@ -32,6 +32,15 @@ const userSchema = new mongoose.Schema({
     gender: {
         type:String,
     },
+    skills:{
+        type:[String],
+        validate: {
+            message:"Invalid Values for Skill",
+            validator: function(value){
+                return value.length <= 3 && value.every(skill => typeof skill === 'string');
+            }
+        }
+    }
 }, {timestamps:true});
 
 userSchema.methods.getJWT = async function (){

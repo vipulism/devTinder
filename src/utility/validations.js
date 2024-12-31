@@ -1,7 +1,6 @@
 
 const validateSignup = (req) => {
 
-
     const {firstName, lastName, emailId, password} = req.body;
 
     if(!password){
@@ -18,7 +17,6 @@ const validateSignup = (req) => {
 }
 
 const validateLogin = (req) => {
-
 
     const {emailId, password} = req.body;
 
@@ -40,4 +38,28 @@ const validateLogin = (req) => {
 }
 
 
-module.exports = { validateSignup, validateLogin }
+const validateProfileUpdae = (req) => {
+
+    const allowdList = ['firstName', 'lastName', 'age', 'gender', 'skills'];
+    const notAllowed = Object.keys(req.body).filter(k => !allowdList.includes(k))
+
+    if(notAllowed.length){
+        throw new Error(`Updating values for ${notAllowed.join(',')} ${notAllowed.length > 1 ? 'are' : 'is'} not allowed!!`);
+    }
+}
+
+const validatePswdUpdate = (req) => {
+
+    const allowdList = ['password'];
+    const notAllowed = Object.keys(req.body).filter(k => !allowdList.includes(k));
+
+    if(!req.body.password){
+        throw new Error(`new password is required!!`);
+    }
+
+    if(notAllowed.length){
+        throw new Error(`Updating values for ${notAllowed.join(',')} ${notAllowed.length > 1 ? 'are' : 'is'} not allowed!!`);
+    }
+}
+
+module.exports = { validateSignup, validateLogin, validateProfileUpdae, validatePswdUpdate }
