@@ -9,7 +9,7 @@ const userSchema = new mongoose.Schema({
         type:String,
         required:true,
         maxLength:50,
-        minLength:3
+        minLength:3,
     },
     lastName: {
         type:String,
@@ -31,6 +31,9 @@ const userSchema = new mongoose.Schema({
     },
     gender: {
         type:String,
+        enum:{
+            values:['male', 'female', 'others']
+        }
     },
     skills:{
         type:[String],
@@ -41,7 +44,16 @@ const userSchema = new mongoose.Schema({
             }
         }
     }
-}, {timestamps:true});
+}, {
+    timestamps:true,
+    virtuals: {
+        fullName: {
+        get() {
+            return this.firstName + ' ' + this.lastName;
+        }
+        }
+    }
+});
 
 userSchema.methods.getJWT = async function (){
 

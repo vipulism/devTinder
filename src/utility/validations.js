@@ -29,37 +29,36 @@ const validateLogin = (req) => {
     }
 
     const allowdList = ['emailId', 'password'];
-    const notAllowed = Object.keys(req.body).filter(k => !allowdList.includes(k))
-
-    if(notAllowed.length){
-        throw new Error(`${notAllowed.join(',')} values not is required in login`);
-    }
+   
+    checkAllowedList(Object.keys(req.body), allowdList);
 
 }
 
 
 const validateProfileUpdae = (req) => {
-
     const allowdList = ['firstName', 'lastName', 'age', 'gender', 'skills'];
-    const notAllowed = Object.keys(req.body).filter(k => !allowdList.includes(k))
-
-    if(notAllowed.length){
-        throw new Error(`Updating values for ${notAllowed.join(',')} ${notAllowed.length > 1 ? 'are' : 'is'} not allowed!!`);
-    }
+    checkAllowedList(Object.keys(req.body), allowdList);
 }
 
 const validatePswdUpdate = (req) => {
 
     const allowdList = ['password'];
-    const notAllowed = Object.keys(req.body).filter(k => !allowdList.includes(k));
 
     if(!req.body.password){
         throw new Error(`new password is required!!`);
     }
 
+    checkAllowedList(Object.keys(req.body), allowdList)
+}
+
+
+const checkAllowedList = (values, allowdList) => {
+
+    const notAllowed = values.filter(k => !allowdList.includes(k));
+
     if(notAllowed.length){
-        throw new Error(`Updating values for ${notAllowed.join(',')} ${notAllowed.length > 1 ? 'are' : 'is'} not allowed!!`);
+        throw new Error(`"${notAllowed.join(',')}" ${notAllowed.length > 1 ? 'are' : 'is'} not allowed!!`);
     }
 }
 
-module.exports = { validateSignup, validateLogin, validateProfileUpdae, validatePswdUpdate }
+module.exports = { validateSignup, validateLogin, validateProfileUpdae, validatePswdUpdate, checkAllowedList }

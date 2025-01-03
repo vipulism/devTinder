@@ -30,7 +30,7 @@ router.get('/profile/view', userAuth, async (req, res) => {
         await loggedInUser.save();
         
       
-        res.send({
+        res.json({
             message:`${loggedInUser.firstName} profile is updated`,
             data:loggedInUser
         });

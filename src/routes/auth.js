@@ -16,7 +16,7 @@ const User = require("../models/user")
             const user = new User({...userData, password:passHashed});
     
             await user.save();
-            res.send("user add");
+            res.send(`${user.fullName} registered successfully`);
         } catch (error) {
             res.status(400).send(`Error: ${error.message}`);
         }
@@ -31,6 +31,11 @@ const User = require("../models/user")
 
             const {password,emailId} = req.body;
             const user = await User.findOne({emailId});
+
+            if(!user){
+                throw new Error('wrong email or password');
+            }
+
             const passHashed = await user.verifyPassward(password);
 
             if(!passHashed){
@@ -39,7 +44,7 @@ const User = require("../models/user")
 
             const token = await user.getJWT();
             res.cookie('token', token)
-                .send("user logged in successfully");
+                .send(`${user.fullName} logged in successfully`);
 
         } catch (error) {
             res.status(400).send(`Error: ${error.message}`);
