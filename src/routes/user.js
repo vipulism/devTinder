@@ -47,11 +47,16 @@ router.get('/user/connections', userAuth, async (req, res) => {
 });
 
 
-router.get('/user/feed', userAuth, async (req, res) => {
+router.get('/feed', userAuth, async (req, res) => {
 
     try {
 
         const {_id:userId } = req.user;
+
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = ((parseInt(req.query.page) || 1) - 1) * limit;
+
+        
 
         let connectedUsers = await ConnectionRequest.find({
             $or:[ { toUserId:userId}, { fromUserId:userId}]
@@ -70,10 +75,15 @@ router.get('/user/feed', userAuth, async (req, res) => {
                 {_id:{$ne: userId}},
                 {_id:{ $nin: Array.from(hideUsers) }}
             ]
-        }).select(safeData);
+        }).select(safeData).skip(skip).limit(limit > 50 ? 50 : limit);
 
+        
 
-        res.json({data});
+        res.json({
+            page:parseInt(req.query.page) || 1,
+            limit,
+            data
+        });
     } catch (error) {
         res.status(400).send(`Error: ${error.message}`);
     }
