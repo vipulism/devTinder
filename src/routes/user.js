@@ -2,6 +2,7 @@ const express = require("express");
 const {userAuth} = require('../middleware/auth');
 const router = express.Router();
 const ConnectionRequest = require('../models/connection-request');
+const User = require('../models/user');
 
 const safeData =  ['emailId', 'firstName', 'lastName', 'skills']
 
@@ -9,9 +10,9 @@ router.get('/user/requests/received', userAuth, async (req, res) => {
 
     try {
         
-        const data = await ConnectionRequest.find({status:'interested', toUserId:req.user._id})
+        let data = await ConnectionRequest.find({status:'interested', toUserId:req.user._id})
+            .select("fromUserId")
             .populate('fromUserId', safeData)
-            .populate('toUserId', safeData);
 
         res.json({ data });
         
@@ -43,6 +44,39 @@ router.get('/user/connections', userAuth, async (req, res) => {
         res.status(400).send(`Error: ${error.message}`);
     }
 
+});
+
+
+router.get('/user/feed', userAuth, async (req, res) => {
+
+    try {
+
+        const {_id:userId } = req.user;
+
+        let connectedUsers = await ConnectionRequest.find({
+            $or:[ { toUserId:userId}, { fromUserId:userId}]
+        }).select("fromUserId toUserId"); 
+        
+        const hideUsers = new Set();
+        
+        connectedUsers.forEach(itm => {
+            hideUsers.add(itm.fromUserId.toString());
+            hideUsers.add(itm.toUserId.toString());
+        })
+        
+        
+        const data = await User.find({
+            $and:[
+                {_id:{$ne: userId}},
+                {_id:{ $nin: Array.from(hideUsers) }}
+            ]
+        }).select(safeData);
+
+
+        res.json({data});
+    } catch (error) {
+        res.status(400).send(`Error: ${error.message}`);
+    }
 });
 
 module.exports = router;
